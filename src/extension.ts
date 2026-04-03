@@ -55,7 +55,18 @@ async function handleUserMessage(content: string, mode: 'chat' | 'explain' | 'fi
 
   const ctx = await contextEngine.buildContext(content);
   const maxContextFiles = vscode.workspace.getConfiguration('ollamaChat').get<number>('maxContextFiles', 5);
-  const relevantFileContents = await contextEngine.readFilesContent(ctx.relevantFiles.slice(0, maxContextFiles));
+
+  let relevantFileContents = '';
+  if (ctx.relevantFiles.length > 0) {
+    relevantFileContents = await contextEngine.readFilesContent(ctx.relevantFiles.slice(0, maxContextFiles));
+  }
+
+  if (!relevantFileContents) {
+    const allFiles = await contextEngine.getAllFiles();
+    if (allFiles.length > 0) {
+      relevantFileContents = await contextEngine.readFilesContent(allFiles.slice(0, maxContextFiles));
+    }
+  }
 
   const messages = promptBuilder.buildMessages(
     ctx,
