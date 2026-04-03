@@ -1,0 +1,125 @@
+{
+  "name": "ollama-vscode-extension",
+  "displayName": "LLM Chat",
+  "description": "Chat with local Ollama models in VS Code with full project awareness",
+  "version": "1.0.0",
+  "main": "./out/extension",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "ollama",
+    "llm",
+    "ai",
+    "chat",
+    "local",
+    "code assistant"
+  ],
+  "activationEvents": [
+    "onCommand:ollamaChat.openInPanel",
+    "onCommand:ollamaChat.explainSelected",
+    "onCommand:ollamaChat.fixSelected",
+    "onCommand:ollamaChat.explainFile",
+    "onCommand:ollamaChat.askAboutCode",
+    "onCommand:ollamaChat.refreshModels",
+    "onCommand:ollamaChat.newChat"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "ollamaChat.openInPanel",
+        "title": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.explainSelected",
+        "title": "Explain Selected Code",
+        "category": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.fixSelected",
+        "title": "Fix Selected Code",
+        "category": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.explainFile",
+        "title": "Explain Current File",
+        "category": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.askAboutCode",
+        "title": "Ask About Current Code",
+        "category": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.refreshModels",
+        "title": "Refresh Models",
+        "category": "LLM Chat"
+      },
+      {
+        "command": "ollamaChat.newChat",
+        "title": "New Chat",
+        "category": "LLM Chat"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ollamaChat.explainSelected",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "ollamaChat.fixSelected",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f",
+        "when": "editorHasSelection"
+      }
+    ],
+    "configuration": {
+      "title": "LLM Chat",
+      "properties": {
+        "ollamaChat.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "URL of the Ollama API server"
+        },
+        "ollamaChat.defaultModel": {
+          "type": "string",
+          "default": "",
+          "description": "Default model to use (leave empty to use first available)"
+        },
+        "ollamaChat.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Temperature for model responses (0 = deterministic, 1 = creative)"
+        },
+        "ollamaChat.maxContextFiles": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Maximum number of relevant files to include in context"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vscode/test-electron": "^2.3.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {}
+}
