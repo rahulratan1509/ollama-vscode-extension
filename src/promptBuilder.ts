@@ -10,6 +10,9 @@ Prefer explaining concepts clearly over being verbose.`;
 
 const PROJECT_CONTEXT_HEADER = `# Project Context
 
+## Project Name
+{projectName}
+
 ## Workspace Structure
 {workspaceTree}
 
@@ -40,7 +43,8 @@ export class PromptBuilder {
     context: ContextResult,
     userMessage: string,
     conversationHistory: ChatMessage[],
-    mode: 'chat' | 'explain' | 'fix' = 'chat'
+    mode: 'chat' | 'explain' | 'fix' = 'chat',
+    relevantFileContents: string = ''
   ): ChatMessage[] {
     const contextParts: string[] = [];
 
@@ -52,13 +56,14 @@ export class PromptBuilder {
       contextParts.push(context.activeFile);
     }
 
-    const contextBlock = contextParts.length > 0
-      ? PROJECT_CONTEXT_HEADER
-          .replace('{workspaceTree}', context.workspaceTree)
-          .replace('{activeFile}', contextParts.find(p => p.includes('Active File')) || '(none)')
-          .replace('{selectedCode}', contextParts.find(p => p.includes('Selected Code')) || '(none)')
-          .replace('{relevantFiles}', '(loaded on demand)')
-      : '';
+    const relevantFilesSection = relevantFileContents || '(none loaded)';
+
+    const contextBlock = PROJECT_CONTEXT_HEADER
+      .replace('{projectName}', context.projectName)
+      .replace('{workspaceTree}', context.workspaceTree)
+      .replace('{activeFile}', contextParts.find(p => p.includes('Active File')) || '(none)')
+      .replace('{selectedCode}', contextParts.find(p => p.includes('Selected Code')) || '(none)')
+      .replace('{relevantFiles}', relevantFilesSection);
 
     const systemMessage: ChatMessage = {
       role: 'system',

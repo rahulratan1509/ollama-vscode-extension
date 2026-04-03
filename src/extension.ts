@@ -54,12 +54,15 @@ async function handleUserMessage(content: string, mode: 'chat' | 'explain' | 'fi
   chatPanel?.webview.postMessage({ type: 'addMessage', role: 'user', content });
 
   const ctx = await contextEngine.buildContext(content);
+  const maxContextFiles = vscode.workspace.getConfiguration('ollamaChat').get<number>('maxContextFiles', 5);
+  const relevantFileContents = await contextEngine.readFilesContent(ctx.relevantFiles.slice(0, maxContextFiles));
 
   const messages = promptBuilder.buildMessages(
     ctx,
     content,
     conversationHistory,
-    mode
+    mode,
+    relevantFileContents
   );
 
   await streamResponse(messages);

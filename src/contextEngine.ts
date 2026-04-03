@@ -50,6 +50,7 @@ export interface WorkspaceTree {
 }
 
 export interface ContextResult {
+  projectName: string;
   selectedCode: string;
   activeFile: string;
   relevantFiles: FileEntry[];
@@ -135,6 +136,35 @@ export class ContextEngine {
     return `## Selected Code: ${relativePath} (lines ${startLine}-${endLine})\n\`\`\`${this.getLanguage(doc.languageId)}\n${selection}\n\`\`\``;
   }
 
+  async getProjectName(): Promise<string> {
+    if (!this.workspaceRoot) {
+      return 'unknown';
+    }
+
+    try {
+      const pkgPath = path.join(this.workspaceRoot, 'package.json');
+      const content = await fs.promises.readFile(pkgPath, 'utf-8');
+      const pkg = JSON.parse(content);
+      if (pkg.name) return pkg.name;
+    } catch { /* fall through */ }
+
+    try {
+      const pyPath = path.join(this.workspaceRoot, 'pyproject.toml');
+      const content = await fs.promises.readFile(pyPath, 'utf-8');
+      const match = content.match(/^name\s*=\s*"([^"]+)"/m);
+      if (match) return match[1];
+    } catch { /* fall through */ }
+
+    try {
+      const cargoPath = path.join(this.workspaceRoot, 'Cargo.toml');
+      const content = await fs.promises.readFile(cargoPath, 'utf-8');
+      const match = content.match(/^name\s*=\s*"([^"]+)"/m);
+      if (match) return match[1];
+    } catch { /* fall through */ }
+
+    return path.basename(this.workspaceRoot);
+  }
+
   async getRelevantFiles(query: string, maxFiles: number = 5): Promise<FileEntry[]> {
     const files = await this.getAllFiles();
     if (files.length === 0) {
@@ -167,6 +197,17 @@ export class ContextEngine {
         score += 2;
       }
 
+      try {
+        if (file.size <= MAX_FILE_SIZE) {
+          const content = fs.readFileSync(file.path, 'utf-8').toLowerCase();
+          for (const term of queryTerms) {
+            if (content.includes(term)) {
+              score += 3;
+            }
+          }
+        }
+      } catch { /* skip unreadable files */ }
+
       return { file, score };
     });
 
@@ -198,6 +239,7 @@ export class ContextEngine {
   }
 
   async buildContext(query: string): Promise<ContextResult> {
+    const projectName = await this.getProjectName();
     const selectedCode = await this.getSelectedText();
     const activeFile = await this.getActiveFile();
     const relevantFiles = await this.getRelevantFiles(query);
@@ -217,6 +259,7 @@ export class ContextEngine {
     }
 
     return {
+      projectName,
       selectedCode,
       activeFile,
       relevantFiles,
